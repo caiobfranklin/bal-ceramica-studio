@@ -1,0 +1,6 @@
+streamlit
+supabase
+fpdf
+streamlit-url-fragment
+Pillow
+gotrue
