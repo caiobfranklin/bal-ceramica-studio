@@ -1,6 +1,6 @@
-# --- utils.py ---
-# Este ficheiro contém toda a lógica de negócio, classes e funções de dados.
-# As nossas páginas (app.py, 1_Inventário.py, etc.) irão importar este ficheiro.
+# --- utils.py (Fase 12.7) ---
+# Este ficheiro NÃO cria mais o cliente Supabase.
+# Ele assume que o cliente JÁ EXISTE em st.session_state.supabase_client
 
 import streamlit as st
 from datetime import date
@@ -13,28 +13,10 @@ from supabase import create_client, Client
 import io
 from gotrue.types import UserAttributes 
 
-# --- Parte 1: Ligação ao SUPABASE (V10) ---
-# O cliente Supabase é criado aqui e usado por todas as funções abaixo
-try:
-    SUPABASE_URL = st.secrets["supabase_url_v10"] 
-    SUPABASE_KEY = st.secrets["supabase_key_v10"]
-except (KeyError, FileNotFoundError):
-    # --- V12.0b: st.warning REMOVIDO daqui ---
-    # As chaves são definidas, mas não "imprimimos" nada durante a importação.
-    SUPABASE_URL = "https://ejbrasgtsgcmgheoonwy.supabase.co"
-    SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqYnJhc2d0c2djbWdoZW9vbnd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NzE5NjksImV4cCI6MjA3ODQ0Nzk2OX0.Y9WIDBF_nyBt334QzRysZ7xA-Oj6-GqS4OrY94EgU48"
-    
-NOME_BUCKET_FOTOS = "fotos-pecas"
+# --- V12.4: Parte 1 (Ligação ao Supabase) REMOVIDA ---
+# A ligação é agora feita no app.py
 
-try:
-    # --- V12.3: Simplificado ---
-    # Apenas cria o cliente. Não tenta aceder ao session_state durante a importação.
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-except Exception as e:
-    # Se a ligação falhar, não podemos usar st.error() aqui.
-    # Vamos "imprimir" na consola do terminal.
-    print(f"ERRO CRÍTICO EM UTILS.PY: Não foi possível ligar ao Supabase. {e}")
-    supabase = None # <-- A Causa do seu erro 'NoneType'
+NOME_BUCKET_FOTOS = "fotos-pecas"
 
 # --- Parte 3: A "Classe" Peca (V10.2) ---
 class Peca:
@@ -121,6 +103,7 @@ def set_estado_inventario_editar(peca_id):
 def verificar_ou_criar_perfil(user):
     """Garante que um utilizador (de email ou Google) tem um perfil em public.profiles."""
     try:
+        supabase = st.session_state.supabase_client # V12.4
         # 1. Verifica se o perfil já existe
         profile_response = supabase.table('profiles').select('id').eq('id', user['id']).execute()
         
@@ -141,6 +124,7 @@ def verificar_ou_criar_perfil(user):
 def carregar_lista_atelies():
     """Busca os ateliês, nomes, roles E PREÇOS dos quais o utilizador é membro."""
     try:
+        supabase = st.session_state.supabase_client # V12.4
         user_id = st.session_state.user['id']
         query_select = """
             atelie_id, 
@@ -184,6 +168,7 @@ def carregar_dados():
         st.error("Erro: Nenhum ateliê selecionado.")
         return []
     try:
+        supabase = st.session_state.supabase_client # V12.4
         response = supabase.table('pecas').select('*') \
             .eq('atelie_id', st.session_state.atelie_selecionado_id) \
             .order('created_at', desc=True).execute()
@@ -196,6 +181,7 @@ def carregar_dados():
     return []
 
 def salvar_nova_peca(nova_peca: Peca, uploaded_file):
+    supabase = st.session_state.supabase_client # V12.4
     atelie_id = st.session_state.atelie_selecionado_id
     if not atelie_id:
         st.error("Nenhum ateliê selecionado para salvar a peça.")
@@ -228,6 +214,7 @@ def salvar_nova_peca(nova_peca: Peca, uploaded_file):
         return False
 
 def excluir_peca_db(peca: Peca):
+    supabase = st.session_state.supabase_client # V12.4
     if peca.image_path:
         try:
             path_to_remove = f"{peca.atelie_id}/{peca.image_path}"
@@ -245,6 +232,7 @@ def excluir_peca_db(peca: Peca):
 def atualizar_peca_db(peca_obj_atualizado: Peca, new_file):
     """Atualiza uma peça existente na DB e lida com a foto."""
     try:
+        supabase = st.session_state.supabase_client # V12.4
         # 1. Lidar com a foto (se houver uma nova)
         if new_file is not None:
             # 1a. Apaga a foto antiga, se existir
@@ -292,6 +280,7 @@ def atualizar_peca_db(peca_obj_atualizado: Peca, new_file):
 def handle_remover_membro(user_id_para_remover, email_membro):
     """Remove um membro do ateliê selecionado."""
     try:
+        supabase = st.session_state.supabase_client # V12.4
         atelie_id = st.session_state.atelie_selecionado_id
         
         supabase.table('membros_atelie') \
@@ -312,6 +301,7 @@ def get_public_url(peca: Peca):
     if not peca.image_path:
         return None
     try:
+        supabase = st.session_state.supabase_client # V12.4
         path_to_image = f"{peca.atelie_id}/{peca.image_path}"
         response = supabase.storage.from_(NOME_BUCKET_FOTOS).create_signed_url(path_to_image, 60)
         return response['signedURL']
