@@ -5,6 +5,7 @@ import streamlit as st
 import io
 
 # Importa as funções necessárias do utils.py
+# --- V12.10: CORRIGIDO (removido 'st' e 'supabase' desta importação) ---
 from utils import (
     gerar_relatorio_pdf,
     get_public_url

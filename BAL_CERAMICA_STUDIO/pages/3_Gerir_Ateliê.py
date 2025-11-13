@@ -4,8 +4,8 @@
 import streamlit as st
 
 # Importa as funções necessárias do utils.py
+# --- V12.10: CORRIGIDO (removido 'supabase' desta importação) ---
 from utils import (
-    supabase,
     handle_remover_membro
 )
 
@@ -24,6 +24,10 @@ st.markdown(HIDE_APP_LINK_CSS, unsafe_allow_html=True)
 if not st.session_state.get('atelie_selecionado_id'):
     st.error("Por favor, selecione um ateliê primeiro na página principal (app.py).")
     st.stop()
+    
+# --- V12.9: Obter o cliente supabase do session_state ---
+# (Necessário para esta página, pois ela chama a supabase diretamente)
+supabase = st.session_state.supabase_client
 
 # --- Interface da Página ---
 st.header(f"Gestão do Ateliê: {st.session_state.atelie_selecionado_nome}")

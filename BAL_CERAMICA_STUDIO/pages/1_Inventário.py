@@ -1,10 +1,11 @@
-# --- pages/1_Inventário.py (Fase 12.9) ---
+# --- pages/1_Inventário.py (Fase 12.10) ---
 # Esta é a página principal para gerir as peças.
 
 import streamlit as st
 import io
 
 # Importa TODAS as nossas funções e objetos do utils.py
+# --- V12.10: CORRIGIDO (removido 'supabase' desta importação) ---
 from utils import (
     Peca,
     get_public_url,
