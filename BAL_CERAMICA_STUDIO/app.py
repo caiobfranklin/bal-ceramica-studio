@@ -1,34 +1,13 @@
-# --- app.py (Fase 12.2) ---
+# --- app.py (Fase 12.3) ---
 
 import streamlit as st
 # --- V12.1: CONFIGURAÇÃO DA PÁGINA ---
 # TEM DE SER O PRIMEIRO COMANDO STREAMLIT A SER EXECUTADO
 st.set_page_config(page_title="BAL Cerâmica Studio", layout="wide", page_icon="🏺")
 
-from streamlit_url_fragment import get_fragment 
-from gotrue.types import UserAttributes 
-# Importa as nossas funções e o cliente supabase do utils.py
-from utils import (
-    supabase, 
-    verificar_ou_criar_perfil, 
-    carregar_lista_atelies
-)
 
-# --- V12.2: CSS Robusto para esconder a barra lateral ---
-HIDE_SIDEBAR_CSS = """
-    <style>
-        /* Esconde a barra lateral principal */
-        section[data-testid="stSidebar"] {
-            display: none;
-        }
-        /* (Se o seletor acima falhar, este também tenta) */
-        [data-testid="stSidebar"] {
-            display: none;
-        }
-    </style>
-"""
-
-# --- Gestão de Estado (V11.0) ---
+# --- V12.3: INICIALIZAÇÃO DO ESTADO (MOVIDO PARA O TOPO) ---
+# Isto TEM de acontecer antes de importar o utils.py
 if 'user' not in st.session_state:
     st.session_state.user = None
 if 'session' not in st.session_state:
@@ -53,6 +32,45 @@ if 'precos_atelie' not in st.session_state:
     }
 if 'pagina_inventario_estado' not in st.session_state:
     st.session_state.pagina_inventario_estado = 'lista'
+
+
+# --- V12.3: Importações agora são seguras ---
+from streamlit_url_fragment import get_fragment 
+from gotrue.types import UserAttributes 
+from utils import (
+    supabase, 
+    verificar_ou_criar_perfil, 
+    carregar_lista_atelies
+)
+
+# --- V12.3: Lógica de Setar a Sessão (MOVIDA DO UTILS) ---
+# Se a sessão já existe no state, diz ao cliente para usá-la
+if st.session_state.session:
+    try:
+        supabase.auth.set_session(
+            st.session_state.session['access_token'], 
+            st.session_state.session['refresh_token']
+        )
+    except Exception as e:
+        st.error(f"Erro ao revalidar sessão: {e}")
+        # Limpa a sessão inválida
+        st.session_state.user = None
+        st.session_state.session = None
+
+
+# --- V12.1: CSS Robusto para esconder a barra lateral ---
+HIDE_SIDEBAR_CSS = """
+    <style>
+        /* Esconde a barra lateral principal */
+        section[data-testid="stSidebar"] {
+            display: none;
+        }
+        /* (Se o seletor acima falhar, este também tenta) */
+        [data-testid="stSidebar"] {
+            display: none;
+        }
+    </style>
+"""
 
 
 # --- V10.5: ROTEAMENTO (Router) ---

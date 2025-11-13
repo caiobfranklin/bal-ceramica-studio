@@ -27,19 +27,14 @@ except (KeyError, FileNotFoundError):
 NOME_BUCKET_FOTOS = "fotos-pecas"
 
 try:
-    # --- V10.5: CORREÇÃO DA CRIAÇÃO DO CLIENTE (Sintaxe V1) ---
+    # --- V12.3: Simplificado ---
+    # Apenas cria o cliente. Não tenta aceder ao session_state durante a importação.
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-                                     
-    if st.session_state.get('session'): # .get() é mais seguro
-        supabase.auth.set_session(
-            st.session_state.session['access_token'], 
-            st.session_state.session['refresh_token']
-        )
 except Exception as e:
     # Se a ligação falhar, não podemos usar st.error() aqui.
     # Vamos "imprimir" na consola do terminal.
     print(f"ERRO CRÍTICO EM UTILS.PY: Não foi possível ligar ao Supabase. {e}")
-    supabase = None # Define como None para que as funções falhem graciosamente
+    supabase = None # <-- A Causa do seu erro 'NoneType'
 
 # --- Parte 3: A "Classe" Peca (V10.2) ---
 class Peca:
