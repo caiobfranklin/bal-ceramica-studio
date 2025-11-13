@@ -1,4 +1,4 @@
-# --- app.py (Fase 12.3) ---
+\# --- app.py (Fase 12.4) ---
 
 import streamlit as st
 # --- V12.1: CONFIGURAÇÃO DA PÁGINA ---
@@ -12,6 +12,8 @@ if 'user' not in st.session_state:
     st.session_state.user = None
 if 'session' not in st.session_state:
     st.session_state.session = None
+if 'supabase_client' not in st.session_state: # <-- V12.4: Novo
+    st.session_state.supabase_client = None
 if 'inventario' not in st.session_state:
     st.session_state.inventario = []
 if 'lista_atelies' not in st.session_state:
@@ -38,13 +40,28 @@ if 'pagina_inventario_estado' not in st.session_state:
 from streamlit_url_fragment import get_fragment 
 from gotrue.types import UserAttributes 
 from utils import (
-    supabase, 
+    # supabase, # <-- V12.4: Não importamos mais o cliente daqui
     verificar_ou_criar_perfil, 
     carregar_lista_atelies
 )
+from supabase import create_client, Client # V12.4: Importamos as ferramentas
 
-# --- V12.3: Lógica de Setar a Sessão (MOVIDA DO UTILS) ---
-# Se a sessão já existe no state, diz ao cliente para usá-la
+
+# --- V12.4: INICIALIZAÇÃO DO CLIENTE SUPABASE ---
+# Só inicializa o cliente UMA VEZ
+if st.session_state.supabase_client is None:
+    try:
+        SUPABASE_URL = st.secrets["supabase_url_v10"] 
+        SUPABASE_KEY = st.secrets["supabase_key_v10"]
+    except (KeyError, FileNotFoundError):
+        SUPABASE_URL = "https://ejbrasgtsgcmgheoonwy.supabase.co"
+        SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqYnJhc2d0c2djbWdoZW9vbnd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NzE5NjksImV4cCI6MjA3ODQ0Nzk2OX0.Y9WIDBF_nyBt334QzRysZ7xA-Oj6-GqS4OrY94EgU48"
+    
+    # Cria o cliente e guarda-o no session_state
+    st.session_state.supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Agora que o cliente existe, defina a sessão (se ela existir)
+supabase = st.session_state.supabase_client # Define a variável local para o resto deste script
 if st.session_state.session:
     try:
         supabase.auth.set_session(
