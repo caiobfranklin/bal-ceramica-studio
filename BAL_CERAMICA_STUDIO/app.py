@@ -1,4 +1,4 @@
-# --- app.py (Fase 12.4) ---
+# --- app.py (Fase 12.5) ---
 
 import streamlit as st
 # --- V12.1: CONFIGURAÇÃO DA PÁGINA ---
@@ -51,8 +51,9 @@ from supabase import create_client, Client # V12.4: Importamos as ferramentas
 # Só inicializa o cliente UMA VEZ
 if st.session_state.supabase_client is None:
     try:
-        SUPABASE_URL = st.secrets["supabase_url_v10"] 
-        SUPABASE_KEY = st.secrets["supabase_key_v10"]
+        # --- V12.5: CORREÇÃO DOS SECRETS ---
+        SUPABASE_URL = st.secrets["supabase_url_v10"]["supabase_url"]
+        SUPABASE_KEY = st.secrets["supabase_key_v10"]["supabase_key"]
     except (KeyError, FileNotFoundError):
         SUPABASE_URL = "https://ejbrasgtsgcmgheoonwy.supabase.co"
         SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVqYnJhc2d0c2djbWdoZW9vbnd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NzE5NjksImV4cCI6MjA3ODQ0Nzk2OX0.Y9WIDBF_nyBt334QzRysZ7xA-Oj6-GqS4OrY94EgU48"
@@ -374,7 +375,7 @@ else:
             
             # V12.1: Mostra um "aviso" se os secrets não estiverem configurados
             try:
-                SUPABASE_URL_CHECK = st.secrets["supabase_url_v10"]
+                SUPABASE_URL_CHECK = st.secrets["supabase_url_v10"]["supabase_url"]
             except (KeyError, FileNotFoundError):
                 st.sidebar.warning("A usar chaves locais.")
             
