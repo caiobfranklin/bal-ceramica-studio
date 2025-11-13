@@ -1,4 +1,4 @@
-\# --- app.py (Fase 12.4) ---
+# --- app.py (Fase 12.4) ---
 
 import streamlit as st
 # --- V12.1: CONFIGURAÇÃO DA PÁGINA ---
