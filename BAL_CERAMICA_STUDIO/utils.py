@@ -1,4 +1,4 @@
-# --- utils.py (Fase 12.8) ---
+# --- utils.py (Fase 12.9) ---
 # Este ficheiro NÃO cria mais o cliente Supabase.
 # Ele assume que o cliente JÁ EXISTE em st.session_state.supabase_client
 
