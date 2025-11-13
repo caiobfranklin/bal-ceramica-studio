@@ -1,4 +1,4 @@
-# --- utils.py (Fase 12.7) ---
+# --- utils.py (Fase 12.8) ---
 # Este ficheiro NÃO cria mais o cliente Supabase.
 # Ele assume que o cliente JÁ EXISTE em st.session_state.supabase_client
 
@@ -103,7 +103,7 @@ def set_estado_inventario_editar(peca_id):
 def verificar_ou_criar_perfil(user):
     """Garante que um utilizador (de email ou Google) tem um perfil em public.profiles."""
     try:
-        supabase = st.session_state.supabase_client # V12.4
+        supabase = st.session_state.supabase_client # V12.8
         # 1. Verifica se o perfil já existe
         profile_response = supabase.table('profiles').select('id').eq('id', user['id']).execute()
         
@@ -124,7 +124,7 @@ def verificar_ou_criar_perfil(user):
 def carregar_lista_atelies():
     """Busca os ateliês, nomes, roles E PREÇOS dos quais o utilizador é membro."""
     try:
-        supabase = st.session_state.supabase_client # V12.4
+        supabase = st.session_state.supabase_client # V12.8
         user_id = st.session_state.user['id']
         query_select = """
             atelie_id, 
@@ -168,7 +168,7 @@ def carregar_dados():
         st.error("Erro: Nenhum ateliê selecionado.")
         return []
     try:
-        supabase = st.session_state.supabase_client # V12.4
+        supabase = st.session_state.supabase_client # V12.8
         response = supabase.table('pecas').select('*') \
             .eq('atelie_id', st.session_state.atelie_selecionado_id) \
             .order('created_at', desc=True).execute()
@@ -181,7 +181,7 @@ def carregar_dados():
     return []
 
 def salvar_nova_peca(nova_peca: Peca, uploaded_file):
-    supabase = st.session_state.supabase_client # V12.4
+    supabase = st.session_state.supabase_client # V12.8
     atelie_id = st.session_state.atelie_selecionado_id
     if not atelie_id:
         st.error("Nenhum ateliê selecionado para salvar a peça.")
@@ -214,7 +214,7 @@ def salvar_nova_peca(nova_peca: Peca, uploaded_file):
         return False
 
 def excluir_peca_db(peca: Peca):
-    supabase = st.session_state.supabase_client # V12.4
+    supabase = st.session_state.supabase_client # V12.8
     if peca.image_path:
         try:
             path_to_remove = f"{peca.atelie_id}/{peca.image_path}"
@@ -232,7 +232,7 @@ def excluir_peca_db(peca: Peca):
 def atualizar_peca_db(peca_obj_atualizado: Peca, new_file):
     """Atualiza uma peça existente na DB e lida com a foto."""
     try:
-        supabase = st.session_state.supabase_client # V12.4
+        supabase = st.session_state.supabase_client # V12.8
         # 1. Lidar com a foto (se houver uma nova)
         if new_file is not None:
             # 1a. Apaga a foto antiga, se existir
@@ -280,7 +280,7 @@ def atualizar_peca_db(peca_obj_atualizado: Peca, new_file):
 def handle_remover_membro(user_id_para_remover, email_membro):
     """Remove um membro do ateliê selecionado."""
     try:
-        supabase = st.session_state.supabase_client # V12.4
+        supabase = st.session_state.supabase_client # V12.8
         atelie_id = st.session_state.atelie_selecionado_id
         
         supabase.table('membros_atelie') \
@@ -301,7 +301,7 @@ def get_public_url(peca: Peca):
     if not peca.image_path:
         return None
     try:
-        supabase = st.session_state.supabase_client # V12.4
+        supabase = st.session_state.supabase_client # V12.8
         path_to_image = f"{peca.atelie_id}/{peca.image_path}"
         response = supabase.storage.from_(NOME_BUCKET_FOTOS).create_signed_url(path_to_image, 60)
         return response['signedURL']
