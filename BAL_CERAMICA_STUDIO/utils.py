@@ -331,35 +331,49 @@ def gerar_relatorio_pdf(lista_de_pecas):
             try:
                 pdf.image(image_url, x=170, y=y_antes, w=30, h=25); pdf.set_auto_page_break(auto=False, margin=0)
             except Exception as e: print(f"Erro ao adicionar imagem URL ao PDF: {e}")
+        
         pdf.set_font('Arial', 'B', 10)
-        linha1 = f"Data Prod.: {peca.data_producao} | Pessoa: {peca.nome_pessoa} | Peca: {peca.tipo_peca}"
-        pdf.multi_cell(160, 5, linha1.encode('latin-1', 'replace').decode('latin-1'), border=0, ln=True)
+        # --- V12.9: Garante que os dados são strings antes de concatenar ---
+        linha1 = f"Data Prod.: {str(peca.data_producao)} | Pessoa: {str(peca.nome_pessoa)} | Peca: {str(peca.tipo_peca)}"
+        # --- V12.9: REMOVIDO o .encode/.decode ---
+        pdf.multi_cell(160, 5, linha1, border=0, ln=True)
+        
         pdf.set_font('Arial', '', 10)
         custo_biscoito_str = f"R$ {peca.custo_biscoito:.2f}".replace('.', ',')
         custo_esmalte_str = f"R$ {peca.custo_esmalte:.2f}".replace('.', ',')
         custo_argila_str = f"R$ {peca.custo_argila:.2f}".replace('.', ',')
         linha2 = f"  Custos: Queima de biscoito({custo_biscoito_str}), Queima de esmalte({custo_esmalte_str}), Argila({custo_argila_str})"
-        pdf.multi_cell(160, 5, linha2.encode('latin-1', 'replace').decode('latin-1'), border=0, ln=True)
+        pdf.multi_cell(160, 5, linha2, border=0, ln=True)
+        
         total_peca_str = f"R$ {peca.total:.2f}".replace('.', ',')
         linha3 = f"  >> Total da Peca: {total_peca_str}"
-        pdf.multi_cell(160, 5, linha3.encode('latin-1', 'replace').decode('latin-1'), border=0, ln=True)
-        linha4 = f"  (Registrado em: {peca.data_registro})"
-        pdf.multi_cell(160, 5, linha4.encode('latin-1', 'replace').decode('latin-1'), border=0, ln=True)
+        pdf.multi_cell(160, 5, linha3, border=0, ln=True)
+        
+        linha4 = f"  (Registrado em: {str(peca.data_registro)})"
+        pdf.multi_cell(160, 5, linha4, border=0, ln=True)
+        
         y_depois_texto = pdf.get_y(); y_depois_imagem = y_antes + 25 
         pdf.set_y(max(y_depois_texto, y_depois_imagem))
         pdf.line(pdf.get_x(), pdf.get_y(), pdf.get_x() + 190, pdf.get_y()); pdf.ln(3)
+        
     pdf.ln(10); pdf.set_font('Arial', 'B', 12); pdf.cell(0, 5, '--- RESUMO TOTAL ---', ln=True, align='C')
     pdf.set_font('Arial', '', 10); pdf.cell(0, 5, f"Total de pecas: {len(lista_de_pecas)}", ln=True)
     custo_geral_str = f"R$ {custo_geral_total:.2f}".replace('.', ',')
     pdf.cell(0, 5, f"CUSTO GERAL TOTAL: {custo_geral_str}", ln=True); pdf.ln(5)
     pdf.set_font('Arial', 'B', 12); pdf.cell(0, 5, '--- RESUMO POR PESSOA ---', ln=True, align='C')
     pdf.set_font('Arial', '', 10)
+    
     for nome, total_pessoa in totais_por_pessoa.items():
         total_pessoa_str = f"R$ {total_pessoa:.2f}".replace('.', ',')
-        linha_total_pessoa = f"  {nome}: {total_pessoa_str}"
-        pdf.cell(0, 5, linha_total_pessoa.encode('latin-1', 'replace').decode('latin-1'), ln=True)
+        linha_total_pessoa = f"  {str(nome)}: {total_pessoa_str}"
+        pdf.multi_cell(0, 5, linha_total_pessoa, border=0, ln=True) # Usei multi_cell para segurança
+        
     nome_arquivo_pdf = f"relatorio_atelie_{date.today().strftime('%Y-%m-%d')}.pdf"
     try:
-        pdf.output(nome_arquivo_pdf); return nome_arquivo_pdf
+        # --- V12.9: A forma correta de "output" para o Streamlit ---
+        # Salva o PDF como bytes na memória
+        pdf_bytes = pdf.output(dest='S').encode('latin-1')
+        return pdf_bytes, nome_arquivo_pdf
     except Exception as e:
-        st.error(f"Erro ao gerar PDF: {e}"); return None
+        st.error(f"Erro ao gerar PDF: {e}"); 
+        return None, None

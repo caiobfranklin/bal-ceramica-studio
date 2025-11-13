@@ -5,7 +5,6 @@ import streamlit as st
 import io
 
 # Importa as funções necessárias do utils.py
-# --- V12.10: CORRIGIDO (removido 'st' e 'supabase' desta importação) ---
 from utils import (
     gerar_relatorio_pdf,
     get_public_url
@@ -48,12 +47,18 @@ else:
         lista_para_relatorio = [p for p in lista_para_relatorio if p.data_producao == filtro_data]
     
     st.subheader("Exportar Relatório")
-    nome_do_pdf = gerar_relatorio_pdf(lista_para_relatorio)
-    if nome_do_pdf:
-        try:
-            with open(nome_do_pdf, "rb") as f:
-                st.download_button(label="Baixar Relatório em PDF", data=f, file_name=nome_do_pdf, mime="application/pdf")
-        except FileNotFoundError: st.error("Erro ao ler o ficheiro PDF gerado.")
+    
+    # --- V12.9: Correção do PDF ---
+    pdf_bytes, nome_do_pdf = gerar_relatorio_pdf(lista_para_relatorio)
+    if pdf_bytes:
+        st.download_button(
+            label="Baixar Relatório em PDF",
+            data=pdf_bytes,
+            file_name=nome_do_pdf,
+            mime="application/pdf"
+        )
+    # --- Fim da Correção ---
+        
     st.divider()
     
     st.subheader(f"Exibindo {len(lista_para_relatorio)} Peças (no filtro)")
