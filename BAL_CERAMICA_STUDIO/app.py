@@ -1,4 +1,4 @@
-# --- app.py (Fase 12.9) ---
+# --- app.py (Fase 12.10) ---
 
 import streamlit as st
 # --- V12.1: CONFIGURAÇÃO DA PÁGINA ---
@@ -338,9 +338,8 @@ else:
                                 except Exception as e:
                                     st.error(f"Erro ao criar ateliê: {e}")
                 
-                st.sidebar.title("Menu")
-                st.sidebar.write(f"Olá, {st.session_state.user['email']}")
-                if st.sidebar.button("Terminar Sessão (Logout)"):
+                # --- V12.10: Movido o Logout para fora da sidebar (que está escondida) ---
+                if st.button("Terminar Sessão (Logout)"):
                     for key in list(st.session_state.keys()):
                         del st.session_state[key]
                     st.rerun()
@@ -350,12 +349,24 @@ else:
             # O utilizador está totalmente autenticado.
             # O Streamlit irá agora procurar e exibir os ficheiros na pasta 'pages/'.
             
-            # A única coisa que o app.py faz é mostrar a barra lateral persistente.
+            # --- V12.10: LÓGICA DA SIDEBAR CORRIGIDA ---
+            # Primeiro, processamos os botões
+            trocar_atelie = st.sidebar.button("Trocar de Ateliê")
+            logout = st.sidebar.button("Terminar Sessão (Logout)")
+
+            # Depois, desenhamos o resto
             st.sidebar.title(f"{st.session_state.atelie_selecionado_nome}")
             st.sidebar.write(f"Olá, {st.session_state.user['email']}")
             st.sidebar.markdown(f"**Sua Função:** `{st.session_state.role_atual}`")
+            st.sidebar.divider()
             
-            if st.sidebar.button("Trocar de Ateliê"):
+            try:
+                SUPABASE_URL_CHECK = st.secrets["supabase_url_v10"]["supabase_url"]
+            except (KeyError, FileNotFoundError):
+                st.sidebar.warning("A usar chaves locais.")
+
+            # Agora, executamos as ações dos botões
+            if trocar_atelie:
                 # Limpa apenas os dados do ateliê, mantém o login
                 st.session_state.atelie_selecionado_id = None
                 st.session_state.atelie_selecionado_nome = None
@@ -366,20 +377,21 @@ else:
                 st.session_state.pagina_inventario_estado = 'lista'
                 st.rerun()
             
-            st.sidebar.divider()
-            
-            if st.sidebar.button("Terminar Sessão (Logout)"):
+            if logout:
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
                 st.rerun()
             
-            # V12.1: Mostra um "aviso" se os secrets não estiverem configurados
-            try:
-                SUPABASE_URL_CHECK = st.secrets["supabase_url_v10"]["supabase_url"]
-            except (KeyError, FileNotFoundError):
-                st.sidebar.warning("A usar chaves locais.")
+            # --- V12.10: Se nenhum botão foi clicado, redireciona ---
+            # Esta lógica garante que o utilizador aterra na página de inventário
+            # se ele não tiver clicado em nada.
             
-            # --- V12.1: Redireciona para o inventário se o utilizador visitar app.py
-            # Esta é uma proteção. Se o utilizador clicar em "app" no menu,
-            # ele será enviado para o inventário em vez de ver uma página em branco.
-            st.switch_page("pages/1_Inventário.py")
+            # Descobre qual é a página atual (hack do Streamlit)
+            # Se for "app", redireciona. Se já for outra página, fica quieto.
+            try:
+                current_page_title = st.session_state['page_script_hash_'].split('/')[-1]
+            except Exception:
+                current_page_title = ""
+
+            if "app.py" in current_page_title:
+                 st.switch_page("pages/1_Inventário.py")
